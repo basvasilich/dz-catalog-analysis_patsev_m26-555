@@ -156,7 +156,7 @@ def format_report_line(movie):
     genres = ", ".join(sorted(movie["genres"]))
     return (
         f'"{normalize_title(movie["title"])}" ({movie["year"]}) — '
-        f'{movie["rating"]}/10, {duration_in_hours(movie["duration_min"])}, '
+        f"{movie['rating']}/10, {duration_in_hours(movie['duration_min'])}, "
         f"жанры: {genres}"
     )
 
@@ -190,9 +190,7 @@ def actor_filmography(movies):
 def ratings_above_average(movies):
     average = average_rating(movies)
     return {
-        movie["title"]: movie["rating"]
-        for movie in movies
-        if movie["rating"] > average
+        movie["title"]: movie["rating"] for movie in movies if movie["rating"] > average
     }
 
 
@@ -219,3 +217,40 @@ def iter_high_rated(movies, min_rating=8.0):
 
 def total_duration_above_seven(movies):
     return sum(movie["duration_min"] for movie in movies if movie["rating"] > 7)
+
+
+def build_report(movies):
+    print("ОТЧЁТ ПО КАТАЛОГУ")
+    print(f"Средний рейтинг: {average_rating(movies)}")
+    print(f"Средний возраст фильмов: {catalog_age_stats(movies)[2]} лет")
+
+    print("\nТоп-3 фильма:")
+    for title, rating in top_n_by_rating(movies):
+        movie = next(
+            movie
+            for movie in movies
+            if movie["title"] == title and movie["rating"] == rating
+        )
+        print(f"  {format_report_line(movie)}")
+
+    print("\nФильмов по жанрам:")
+    counts = count_by_genre(movies)
+    for genre, count in sorted(counts.items(), key=lambda item: (-item[1], item[0])):
+        print(f"  {genre} — {count}")
+
+    print(f"\nВсе жанры каталога: {', '.join(sorted(all_genres(movies)))}")
+
+    print("\nБез комедий:")
+    print_non_comedies(movies)
+    print("\nПервый фильм с рейтингом выше 9:")
+    find_masterpiece(movies)
+
+    print("\nФильмы с рейтингом не ниже 8:")
+    for movie in iter_high_rated(movies):
+        print(format_report_line(movie))
+    duration = total_duration_above_seven(movies)
+    print(f"\nДлительность фильмов с рейтингом выше 7: {duration} мин")
+
+
+if __name__ == "__main__":
+    build_report(movies)
